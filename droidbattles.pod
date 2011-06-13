@@ -1,0 +1,42 @@
+=pod
+
+=head1 Droidbattles.pl
+
+A perl-ish port of droidbattles
+
+=head1 TODO
+
+=head2 ARENA
+
+Game arena , size (X,Y)
+Physics (::Box2D ?)
+
+Robot(s)
+
+Effectors
+
+  Walls
+  Plasma rounds
+  Missiles
+  Beams
+  
+
+Scenery/Terrain
+
+
+
+=head2 COMPILER
+
+
+
+=head2 BOT CREATOR
+
+Hardware manager
+Code editor
+
+=head1 SEE ALSO
+
+droidbattles/createbot.cpp - compiler
+
+
+=cut
