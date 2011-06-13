@@ -100,14 +100,14 @@ sub draw {
         
         if ($e->isa('Droidbattles::Effect::Plasmaround')) {
             my ($x,$y,$sx,$sy) = $rescale->($e->position,5,5);
-            $app->draw_circle_filled( $x,$y,$sx , [255,255,0,200] );
-            # SDL::Video::fill_rect(
-                    # $app,
-                    # SDL::Rect->new(
-                            # $rescale->( $e->position , 5,5 )
-                    # ),
-                    # SDL::Video::map_RGB( $app->format, 255, 0, 0 )
-            # );
+            #$app->draw_circle_filled( $x,$y,$sx , [255,255,0,200] );
+            SDL::Video::fill_rect(
+                    $app,
+                    SDL::Rect->new(
+                            $rescale->( $e->position , 5,5 )
+                    ),
+                    SDL::Video::map_RGB( $app->format, 255, 0, 0 )
+            );
         }
     }
     SDL::Video::flip($app);
