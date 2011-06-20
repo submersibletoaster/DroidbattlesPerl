@@ -19,12 +19,20 @@ sub new {
     my $testdroid = new Droidbattles::Droid
                                     position => [ 0,40000 ],
                                     direction=> rand(360),
-                                    velocity => 0;
+                                    velocity => 0,
+                                    size => 3000;
                         
     my $otherdroid = new Droidbattles::Droid
                                     position => [-40000,-20000],
                                     direction => rand(360),
-                                    velocity => 90;
+                                    velocity => 90,
+                                    size => 3000;
+                                    
+    my $otherdroid2 = new Droidbattles::Droid
+                                    position => [40000,20000],
+                                    direction => rand(360),
+                                    velocity => 90,
+                                    size => 3000;
                                     
                                     
     my $plasmaround = new Droidbattles::Effect::Plasmaround
@@ -35,6 +43,10 @@ sub new {
     $otherdroid->add_routine(sub{ triggerhappy(@_,15) } );
     $otherdroid->add_routine(sub{ steer(shift,0.21) } );
     
+    $otherdroid2->add_routine(sub{ triggerhappy(@_,25) } );
+    $otherdroid2->add_routine(sub{ steer(shift,-0.18) } );
+    
+    
     ## Fill the arena
     $arena->add_element( 
      $_
@@ -43,6 +55,7 @@ sub new {
         $bounds,
         $testdroid,
         $otherdroid,
+        $otherdroid2,
         $plasmaround
     );
     return $arena;

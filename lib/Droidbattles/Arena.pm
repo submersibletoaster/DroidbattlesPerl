@@ -77,6 +77,7 @@ sub get_elements {
     
 }
 
+
 =head2 simulate
 
 step the simulation one tick.
@@ -101,7 +102,14 @@ sub simulate {
 
 }
 
-
+sub damage {
+    my ($self,$e,$d) = @_;
+    if ($e->armor) { 
+        $e->armor( $e->armor - $d );
+        $self->destroy_element( $e ) if $e->armor <= 0;
+    }
+    
+}
 
 
 1;

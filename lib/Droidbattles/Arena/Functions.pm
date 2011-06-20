@@ -2,7 +2,12 @@ package Droidbattles::Arena::Functions;
 use strict;
 use warnings;
 use parent 'Exporter';
-our @EXPORT_OK = qw( is_inside_box is_inside_circle );
+our @EXPORT_OK = qw( 
+    find_distance
+    is_inside_box 
+    is_inside_circle 
+    circles_overlap 
+);
 
 use constant X=>0;
 use constant Y=>1;
@@ -13,6 +18,27 @@ sub is_inside_box {
     abs $point->[X] < $Xsize
     and
     abs $point->[Y] < $Ysize ;
+}
+
+sub find_distance {
+    my ($point,$origin) = @_;
+    my $distance = sqrt(
+                ($point->[0] - $origin->[0] ) ** 2 
+              + ($point->[1] - $origin->[1] ) ** 2
+            );
+    return $distance;
+}
+
+sub circles_overlap {
+    my ($pri,$pri_rad,$sec,$sec_rad) = @_;
+    my $bail = $pri_rad + $sec_rad;
+    
+    my $dist = sqrt(
+      ($pri->[Y] - $sec->[Y] ) ** 2 + ( $pri->[X] - $sec->[X] ) ** 2 
+    );
+    
+    $dist <= $bail;
+    
 }
 
 sub is_inside_circle {
@@ -28,6 +54,8 @@ sub is_inside_circle {
     } else { return 0 }
     
 }
+
+
 
 
 

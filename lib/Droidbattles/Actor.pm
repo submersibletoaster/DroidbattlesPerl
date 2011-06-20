@@ -3,7 +3,6 @@ use strict;
 use warnings;
 
 use Class::XSAccessor
-    constructor => 'new',
     true => [qw(
         has_position
         has_velocity
@@ -16,8 +15,27 @@ use Class::XSAccessor
         velocity
         direction
         armor
+        size
     )];
+
+sub defaults {
+    (
+    #$_[0]->SUPER::defaults, 
+    armor => 100,
+    direction => 0,
+    velocity => 10,
+    size => 512,
+    );
+}
+
+
+sub new {
+    my ($class,@args) = @_;
+    my %self = ( $class->defaults() , @args );
+    return bless \%self, ref($class)||$class;
     
+}
+
 sub damage {
     my ($self,$d) = @_;
 

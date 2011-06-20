@@ -22,10 +22,10 @@ use t::lib::Game1;
 my $arena = new t::lib::Game1;
 
 my $game = SDLx::App->new(
-     w => 500, h => 500,
+     w => 800, h => 800,
     d => 32,
-    title => 'Pretty Flowers',
-    dt=>1/50 , min_t => 1/50, delay=> 0
+    title => 'Droidbattles',
+    dt=>1/50 , min_t => 3/50, delay=> 0
 );
 
 
@@ -60,6 +60,9 @@ sub draw {
 
         my $sx = shift;
         my $sy = shift;
+        $sx *= $factor;
+        $sy *= $factor;
+        
         $c->[0] -= $sx/2;
         $c->[1] -= $sy/2;
         
@@ -75,19 +78,21 @@ sub draw {
     foreach my $e ( $arena->get_elements ) {
         
         if ($e->isa('Droidbattles::Droid') ) {
-
-                $app->draw_rect( 
-                        [$rescale->( $e->position, 50, 50 )],
-                        [0,0,255,255]
+                my ($x,$y,$sx) = $rescale->($e->position,$e->size,$e->size);
+                
+                $app->draw_circle_filled( 
+                        [$x,$y],$sx,
+                        [0,0,255,$e->armor / 100 * 255]
                 );
         }
         
         if ($e->isa('Droidbattles::Effect::Plasmaround')) {
-            my ($x,$y,$sx,$sy) = $rescale->($e->position,5,5);
+            my ($x,$y,$sx,$sy) = $rescale->($e->position,$e->size,$e->size);
             $app->draw_circle_filled( [$x,$y, ] , $sx , [0,200,0,200] );
         }
     }
-    SDL::Video::flip($app);
+    $app->update;
+    #SDL::Video::flip($app);
 
     return 0;
     

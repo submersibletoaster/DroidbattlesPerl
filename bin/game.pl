@@ -22,7 +22,9 @@ my $arena = new t::lib::Game1;
 
 my $app = init();
 my $game = SDLx::Controller->new( dt=>1/50 , min_t => 1/50, delay=> 0);
-$game->add_show_handler( sub { draw($arena,shift) } );
+
+
+$game->add_show_handler( \&draw );
 $game->add_move_handler( sub { $arena->simulate } );
 $game->add_event_handler( \&on_event );
 $game->run;
@@ -55,7 +57,7 @@ sub init {
 }
 
 sub draw {
-    my $arena = shift;
+    my ($time,$cx) = @_;
     
     my $factor =  $app->w / ( 2 ** 16 * 2 );
     my $offset  = 2 ** 16 ;
