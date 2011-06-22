@@ -63,8 +63,8 @@ sub draw {
         $sx *= $factor;
         $sy *= $factor;
         
-        $c->[0] -= $sx/2;
-        $c->[1] -= $sy/2;
+        #$c->[0] -= $sx/2;
+        #$c->[1] -= $sy/2;
         
         @$c, $sx , $sy;
     };
@@ -90,6 +90,31 @@ sub draw {
             my ($x,$y,$sx,$sy) = $rescale->($e->position,$e->size,$e->size);
             $app->draw_circle_filled( [$x,$y, ] , $sx , [0,200,0,200] );
         }
+        
+        if ($e->isa('Droidbattles::Effect::Rocket')) {
+            my ($x,$y,$sx,$sy) = $rescale->($e->position,$e->size,$e->size);
+            $app->draw_circle_filled( [$x,$y, ] , $sx , [255,255,255,200] );
+        }
+        
+              
+        if ($e->isa('Droidbattles::Effect::RocketDebris')) {
+            my ($x,$y,$sx,$sy) = $rescale->($e->position,$e->size,$e->size);
+            my $factor = abs( $e->maxage - $e->age ) ;
+            next unless $factor;
+            $factor /= $e->maxage;
+            $app->draw_circle_filled( [$x,$y, ] , $sx , 
+                [55,55,55,  255 * $factor ] );
+        }
+        
+        if ($e->isa('Droidbattles::Effect::PlasmaDebris')) {
+            my ($x,$y,$sx,$sy) = $rescale->($e->position,$e->size,$e->size);
+            my $factor = abs( $e->maxage - $e->age ) ;
+            next unless $factor;
+            $factor /= $e->maxage;
+            $app->draw_circle_filled( [$x,$y, ] , $sx , 
+                [55,255,255,  128 * $factor ] );
+        }
+        
     }
     $app->update;
     #SDL::Video::flip($app);

@@ -7,6 +7,7 @@ use Droidbattles::Arena::Functions;
 use Droidbattles::Effect::OutOfBounds;
 use Droidbattles::Effect::Newton2D;
 use Droidbattles::Effect::Plasmaround;
+use Droidbattles::Effect::Rocket;
 use Droidbattles::Droid;
 
 sub new {
@@ -40,11 +41,15 @@ sub new {
                                         direction => 90;
                                         
     $testdroid->add_routine(\&triggerhappy);
+        $testdroid->add_routine(sub{ rockets(@_,100) } );
     $otherdroid->add_routine(sub{ triggerhappy(@_,15) } );
     $otherdroid->add_routine(sub{ steer(shift,0.21) } );
+    $otherdroid->add_routine(sub{ rockets(@_,150) } );
+        
     
-    $otherdroid2->add_routine(sub{ triggerhappy(@_,25) } );
+     $otherdroid2->add_routine(sub{ triggerhappy(@_,25) } );
     $otherdroid2->add_routine(sub{ steer(shift,-0.18) } );
+    $otherdroid2->add_routine(sub{ rockets(@_,100) } );
     
     
     ## Fill the arena
@@ -76,6 +81,18 @@ sub triggerhappy {
 sub steer { 
         my $self = shift;
         $self->direction( $self->direction + shift );
+}
+
+sub rockets {
+    my ($self,$arena,$beat) = @_;
+    $arena->add_element(
+        new Droidbattles::Effect::Rocket
+            origin => [ @{ $self->position } ],
+            direction => $self->direction,
+            distance => 60000,
+            strength => 400,
+    ) if $arena->ticks % $beat == 0;
+    
 }
 
 1;

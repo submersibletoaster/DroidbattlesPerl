@@ -2,7 +2,7 @@ package Droidbattles::Effect::Plasmaround;
 use strict;
 use warnings;
 use parent qw( Droidbattles::Effect );
-
+use Droidbattles::Effect::PlasmaDebris;
 use Class::XSAccessor
     replace => 1,
     accessors => [qw( strength origin )];
@@ -47,7 +47,14 @@ sub step {
             warn "Plasma HIT $e";
             $arena->destroy_element($self);
             $arena->damage( $e => 15 );
+            $arena->add_element(
+                new Droidbattles::Effect::PlasmaDebris
+                    position => [ @{ $self->position } ],
+                    direction => rand(360),
+                    velocity => $self->velocity ,
+                    size => $self->size,
             
+            ) for  1..3;
         }
     }
 }
