@@ -4,6 +4,7 @@ use warnings;
 use Math::Trig;
 use Carp 'croak';
 use parent qw( Droidbattles::Actor );
+use Droidbattles::Effect::Debris;
 
 
 # 
@@ -38,6 +39,20 @@ sub step {
     if ($self->routines ) {
         $_->($self,$arena) for @{ $self->routines } ;
     }
+}
+
+
+sub hook_destroy {
+    my ($self,$arena) = @_;
+    $arena->add_element(
+                new Droidbattles::Effect::Debris
+                    position => [ @{ $self->position } ],
+                    direction => $self->direction * ( 45 - rand(90)),
+                    velocity => $self->velocity || rand(100) ,
+                    size => $self->size * rand(1)+0.5 ,
+            
+            ) for  1..int($self->size/250);
+    
 }
 
 1;

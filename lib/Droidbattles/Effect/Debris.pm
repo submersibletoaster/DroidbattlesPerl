@@ -1,4 +1,4 @@
-package Droidbattles::Effect::PlasmaDebris;
+package Droidbattles::Effect::Debris;
 use strict;
 use warnings;
 use parent qw( Droidbattles::Effect );
@@ -9,10 +9,11 @@ use Class::XSAccessor
 sub defaults {
     shift->SUPER::defaults,
     velocity => 10,
-    size => 700,
-    maxage => 30,
+    size => 1000,
+    maxage => 75,
     age => 0,
 }
+
 
 sub step {
     my ($self,$arena) = @_;
@@ -27,5 +28,11 @@ sub step {
     
     
 }
+
+
+
+
+
+
 
 1;

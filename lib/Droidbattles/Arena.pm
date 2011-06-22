@@ -58,6 +58,14 @@ sub destroy_element {
     my $class =ref $e;
     @{ $self->{elements}{$class} } =
         grep { $_ ne $e } @{ $self->{elements}{$class} };
+        
+    if ($e->can('hook_destroy')) {
+        eval {
+            $e->hook_destroy( $self , $reason );
+            
+        };
+        
+    }
     
 }
 
@@ -97,6 +105,13 @@ sub simulate {
     }
     
     $self->ticks( $self->ticks + 1 );
+    my (@droids) = 
+                grep  { $_->isa('Droidbattles::Droid') } 
+                map { @$_  } values %{$self->{elements}};
+                
+    die "Finished! winner is $droids[0]" if scalar @droids == 1;
+    
+    $self->ticks(1) if $self->ticks > 65535;
     
     return;
 

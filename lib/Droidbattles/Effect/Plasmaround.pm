@@ -38,16 +38,20 @@ sub step {
     foreach my $e ( $arena->get_actors ) {
         next if ($self->owner eq $e );
         
-        # if ( is_inside_circle( $self->position, $e->position, 3096) ) {
-            # warn "Plasma HIT $e";
-            # $arena->destroy_element( $self );
-            # $arena->damage( $e => 15 );
-        # }
+
         if ( circles_overlap( $self->position, $self->size , $e->position, $e->size ) ) {
             warn "Plasma HIT $e";
             $arena->destroy_element($self);
+            
             $arena->damage( $e => 15 );
-            $arena->add_element(
+            
+        }
+    }
+}
+
+sub hook_destroy {
+    my ($self,$arena) = @_;
+    $arena->add_element(
                 new Droidbattles::Effect::PlasmaDebris
                     position => [ @{ $self->position } ],
                     direction => rand(360),
@@ -55,8 +59,7 @@ sub step {
                     size => $self->size,
             
             ) for  1..3;
-        }
-    }
+    
 }
 
 1;

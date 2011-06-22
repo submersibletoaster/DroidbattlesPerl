@@ -82,7 +82,7 @@ sub draw {
                 
                 $app->draw_circle_filled( 
                         [$x,$y],$sx,
-                        [0,0,255,$e->armor / 100 * 255]
+                        [0,0,255, 127+ $e->armor / 100 * 128]
                 );
         }
         
@@ -113,6 +113,15 @@ sub draw {
             $factor /= $e->maxage;
             $app->draw_circle_filled( [$x,$y, ] , $sx , 
                 [55,255,255,  128 * $factor ] );
+        }
+        
+        if ($e->isa('Droidbattles::Effect::Debris')) {
+            my ($x,$y,$sx,$sy) = $rescale->($e->position,$e->size,$e->size);
+            my $factor = abs( $e->maxage - $e->age ) ;
+            next unless $factor;
+            $factor /= $e->maxage;
+            $app->draw_circle_filled( [$x,$y, ] , $sx , 
+                [200,90,10,  128 * $factor ] );
         }
         
     }
