@@ -46,7 +46,7 @@ sub hook_destroy {
     my ($self,$arena) = @_;
     $arena->add_element(
                 new Droidbattles::Effect::Debris
-                    position => [ @{ $self->position } ],
+                    position => [ map { $_ + 100-rand(200) } @{ $self->position } ],
                     direction => $self->direction * ( 45 - rand(90)),
                     velocity => $self->velocity || rand(100) ,
                     size => $self->size * rand(1)+0.5 ,

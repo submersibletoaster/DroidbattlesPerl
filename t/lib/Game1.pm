@@ -8,6 +8,7 @@ use Droidbattles::Effect::OutOfBounds;
 use Droidbattles::Effect::Newton2D;
 use Droidbattles::Effect::Plasmaround;
 use Droidbattles::Effect::Rocket;
+use Droidbattles::Effect::Missile;
 use Droidbattles::Droid;
 
 sub new {
@@ -27,6 +28,7 @@ sub new {
                     armor => 40,
                     size => 1500
                         for 1..10;
+    $_->add_routine(\&wander) for @drones;
                         
                         
     my @rocketeers;
@@ -36,12 +38,13 @@ sub new {
                     velocity => rand(50) + 50 ,
                     armor => 100,
                     size => 3000
-                        for 1..10;
+                        for 1..5;
                   
     $_->add_routine( sub{ rockets(@_,100+rand(10)) } ) for @rocketeers;
     $_->add_routine( sub{ steer(shift,0.2+rand(0.05) ) } ) for @rocketeers;
     $_->add_routine(sub{ triggerhappy(@_,15+rand(5) ) } ) for @rocketeers; 
       
+  $_->add_routine( sub{ missiles(@_,int(200+rand(50))) } ) for @rocketeers;
       
    
     
@@ -85,6 +88,25 @@ sub rockets {
             distance => 60000,
             strength => 400,
     ) if $arena->ticks % $beat == 0;
+    
+}
+
+sub missiles {
+    my ($self,$arena,$beat) = @_;
+        $arena->add_element(
+        new Droidbattles::Effect::Missile
+            origin => [ @{ $self->position } ],
+            direction => $self->direction + 90,
+            owner => $self
+    ) if $arena->ticks % $beat == 0;
+    
+}
+
+sub wander {
+    my ($self,$arena) = @_;
+    if ( int(rand(200) + rand(200)) == 200 ) {
+        $self->direction(rand(360));
+    }
     
 }
 
