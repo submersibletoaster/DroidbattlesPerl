@@ -1,0 +1,104 @@
+%{
+
+my $instructions_re = 
+        qr/mov|nop|movsb|movsw|stosb|stosw|lodsb|lodsw|push|pop|xchg|test|cmp|icmp|cmpsb|jmp|jz|jnz|jae|jbe|ja|jb|cj|cjn|lz|lnz|la|lb|lae|lbe|loop|call|ret|iret|cli|sti|out|in|inc|dec|add|sub|and|or|xor|shl|shr|ishl|ishr|ror|rol|int|mul|imul
+                |div|idiv
+                |sinfunc|cosfunc|atanfunc|sin|cos
+                |rnd
+                |hwait
+                |sqr
+                |msg
+                |err
+                |readfile|writefile/x;
+
+my $compiler_re =
+        qr/org|CPUboot|CPUstack|interrupt/;
+
+%}
+
+%%
+input:  #empty
+        |   input line  { push(@{$_[1]},$_[2]); $_[1] }
+;
+
+line:       ENDLINE                { $_[1] }
+        |   exp ENDLINE            { $_[1] }
+        |   exp COMMENT ENDLINE    { $_[1] }
+        |   error ENDLINE { $_[0]->YYErrok }
+;
+
+exp: LABEL { print "label @_\n" ; $_[1] ; } |
+     instruction arglist { print "instruction +arglist @_\n"  ; $_[1] } |
+     instruction { print "instruction no args @_\n"; $_[1] } |
+     compiler_instruction numericterm { print "compiler instruction, @_\n" ; $_[1]; }
+;
+
+arglist: term { print "TERM\n"; $_[1] } |
+         term ',' arglist { print "TERM ARGLIST @_\n";  [ $_[1], $_[2] ] }
+         ;
+
+instruction:
+  INSTRUCT { print "INSTRUCT: @_\n" ; $_[1]; }
+;
+
+numericterm: NUM | HEX;
+
+term:   SYM | NUM | HEX | '@'SYM | '@'NUM ;
+
+compiler_instruction:
+  COMPINSTRUCT { print "COMPINSTR: @_\n"; $_[1]; }
+;
+
+
+
+%%
+
+sub _Error {
+        exists $_[0]->YYData->{ERRMSG}
+    and do {
+        print $_[0]->YYData->{ERRMSG};
+        delete $_[0]->YYData->{ERRMSG};
+        return;
+    };
+    print "Syntax error.\n";
+}
+
+sub _Lexer {
+    my($parser)=shift;
+
+        $parser->YYData->{INPUT}
+    or  $parser->YYData->{INPUT} = <STDIN>
+    or  return('',undef);
+
+    $parser->YYData->{INPUT}=~s/^[ \t]//;
+
+    for ($parser->YYData->{INPUT}) {
+        s/^($instructions_re)//
+                and return('INSTRUCT',$1);
+        s/^%($compiler_re)//
+                and return('COMPINSTRUCT',$1);
+        s/^(0x[0-9A-Fa-f]+)//
+                and return('HEX',$1);
+        s/^([0-9]+(?:\.[0-9]+)?)//
+                and return('NUM',$1);
+        s/^([A-Za-z][A-Za-z0-9_]*)//
+                and return('SYM',$1);
+        s/^\$([A-Za-z][A-Za-z0-9_]*)//
+                and return('VAR',$1);
+        s/^:([A-Za-z][A-Za-z0-9_]*)//
+                and return('LABEL',$1);
+
+        s/^;([^\n]+)//
+                and return('COMMENT', $1);
+        s/^(\n)//
+                and return('ENDLINE',$1); 
+        s/^(,|@)//
+                and return($1,$1);
+        
+    }
+}
+
+sub Run {
+    my($self)=shift;
+    $self->YYParse( yylex => \&_Lexer, yyerror => \&_Error , yydebug=>0x01 );
+}

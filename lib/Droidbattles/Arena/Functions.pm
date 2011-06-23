@@ -7,7 +7,9 @@ our @EXPORT_OK = qw(
     is_inside_box 
     is_inside_circle 
     circles_overlap 
+    translate_xy_dir_dist
 );
+use Math::Trig;
 
 use constant X=>0;
 use constant Y=>1;
@@ -29,6 +31,13 @@ sub find_distance {
     return $distance;
 }
 
+sub find_direction {
+    my ($point,$origin) = @_;
+    my $dist = find_distance($point,$origin);
+    
+    
+}
+
 sub circles_overlap {
     my ($pri,$pri_rad,$sec,$sec_rad) = @_;
     my $bail = $pri_rad + $sec_rad;
@@ -45,8 +54,8 @@ sub is_inside_circle {
     my ($point,$origin,$radius) = @_;
     
     my $distance = sqrt(
-                    ($point->[0] - $origin->[0] ) ** 2 
-                  + ($point->[1] - $origin->[1] ) ** 2
+                    ($point->[X] - $origin->[X] ) ** 2 
+                  + ($point->[Y] - $origin->[Y] ) ** 2
                 );
                 
     if ( $distance <= $radius ) {
@@ -55,7 +64,18 @@ sub is_inside_circle {
     
 }
 
-
+sub translate_xy_dir_dist {
+        my ($x,$y,$dir,$dist) = @_;
+        my ($dx,$dy) = 
+            (
+                sin(deg2rad $dir) * $dist, 
+                cos(deg2rad $dir) * $dist,
+            );
+            #warn sprintf "Adjust %.2f => %.2f ", $x, $y;
+        $x+= $dx;
+        $y+= $dy;
+        return [$x,$y];
+}
 
 
 

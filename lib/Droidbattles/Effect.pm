@@ -9,6 +9,8 @@ use Class::XSAccessor
         has_direction=> 'direction',
         has_owner    => 'owner',
     },
+    false => [qw(is_actor  )],
+    true  => [qw(is_effect  )],
     accessors => [qw(
         position
         direction
