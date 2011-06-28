@@ -3,6 +3,8 @@ use strict;
 use warnings;
 use Math::Trig;
 use parent qw( Droidbattles::Effect );
+use Droidbattles::Arena::Functions
+    'translate_xy_dir_dist';
 
 use Class::XSAccessor
     accessors => [qw(
@@ -21,15 +23,17 @@ sub step {
         
         # adjust velocity by acceleration ?
         my $dir = $e->direction;
-        # adjust position by direction/velocity
-        my ($x,$y) = 
-            (
-                sin(deg2rad $dir) * $e->velocity, 
-                cos(deg2rad $dir) * $e->velocity,
-            );
-            #warn sprintf "Adjust %.2f => %.2f ", $x, $y;
-        $e->position->[0] += $x ;
-        $e->position->[1] += $y ;
+        
+        # # adjust position by direction/velocity
+        # my ($x,$y) = 
+            # (
+                # sin(deg2rad $dir) * $e->velocity, 
+                # cos(deg2rad $dir) * $e->velocity,
+            # );
+        my $pos = translate_xy_dir_dist @{ $e->position } ,  $e->direction, $e->velocity ;
+        
+        $e->position($pos);
+        
     }
 }
 

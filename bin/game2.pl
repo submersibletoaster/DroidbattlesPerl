@@ -15,6 +15,7 @@ use Math::Trig;
 use lib 'lib', 't/lib';
 use SDLx::App;
 use SDLx::Controller;
+use constant ANTIALIAS => 1;
 
 use t::lib::Game1;
 
@@ -77,57 +78,90 @@ sub draw {
     # Need a co-ord transform from Arena to Pixels
     foreach my $e ( $arena->get_elements ) {
         
-        if ($e->isa('Droidbattles::Droid') ) {
-                my ($x,$y,$sx) = $rescale->($e->position,$e->size,$e->size);
-                
+        if ( $e->is_actor ) {
+            if ($e->isa('Droidbattles::Droid') ) {
+                    my ($x,$y,$sx) = $rescale->($e->position,$e->size,$e->size);
+                    my $alpha = $e->armor / 100;
+                    $alpha = 1 if $alpha > 1;
+                    $app->draw_circle_filled( 
+                            [$x,$y],$sx,
+                            [0,0,255, 127+ $alpha * 128],
+                            ANTIALIAS
+                    );
+            }
+        } elsif ( $e->is_effect ) {
+            my $type = ref $e;
+            if ($type eq 'Droidbattles::Effect::Plasmaround') {
+                my ($x,$y,$sx,$sy) = $rescale->($e->position,$e->size,$e->size);
                 $app->draw_circle_filled( 
-                        [$x,$y],$sx,
-                        [0,0,255, 127+ $e->armor / 100 * 128]
+                        [$x,$y, ] , $sx , [0,200,0,200] , ANTIALIAS
                 );
+            }
+            elsif ($type eq 'Droidbattles::Effect::Rocket') {
+                my ($x,$y,$sx,$sy) = $rescale->($e->position,$e->size,$e->size);
+                $app->draw_circle_filled( 
+                        [$x,$y, ] , $sx , [255,255,255,200] , ANTIALIAS
+                );
+            } 
+            elsif ($type eq 'Droidbattles::Effect::Missile' ) {
+                my ($x,$y,$sx,$sy) = $rescale->($e->position,$e->size,$e->size);
+                    $app->draw_circle_filled( [$x,$y, ] , $sx , 
+                    [255,255,0,  255 ] , ANTIALIAS
+                );
+            }
+            elsif ( $type eq 'Droidbattles::Effect::RocketDebris') {
+                my ($x,$y,$sx,$sy) = $rescale->($e->position,$e->size,$e->size);
+                my $factor = abs( $e->maxage - $e->age ) ;
+                next unless $factor;
+                $factor /= $e->maxage;
+                $app->draw_circle_filled( [$x,$y, ] , $sx , 
+                    [55,55,55,  255 * $factor ] , ANTIALIAS
+                );
+            }
+            elsif ($type eq 'Droidbattles::Effect::PlasmaDebris') {
+                my ($x,$y,$sx,$sy) = $rescale->($e->position,$e->size,$e->size);
+                my $factor = abs( $e->maxage - $e->age ) ;
+                next unless $factor;
+                $factor /= $e->maxage;
+                $app->draw_circle_filled( [$x,$y, ] , $sx , 
+                    [55,255,255,  128 * $factor ] , ANTIALIAS
+                );
+            }
+            elsif ($type eq 'Droidbattles::Effect::Debris') {
+                my ($x,$y,$sx,$sy) = $rescale->($e->position,$e->size,$e->size);
+                my $factor = abs( $e->maxage - $e->age ) ;
+                next unless $factor;
+                $factor /= $e->maxage;
+                $app->draw_circle_filled( [$x,$y, ] , $sx , 
+                    [200,90,10,  128 * $factor ] 
+                    , ANTIALIAS
+                );
+            }
+            elsif ( $type eq 'Droidbattles::Effect::RocketTrail' ) {
+                my ($x,$y,$sx,$sy) = $rescale->($e->position,$e->size,$e->size);
+                my $factor = abs( $e->maxage - $e->age ) ;
+                next unless $factor;
+                $factor /= $e->maxage;
+                $app->draw_circle_filled(
+                    [$x,$y],$sx ,
+                    [255,0,0,127 + (128*$factor)],
+                    ANTIALIAS
+                )
+                
+            } elsif ( $type eq 'Droidbattles::Effect::Beam' ) {
+                my ($x,$y,$sx,$sy) = $rescale->($e->position,$e->size,$e->size);
+                my ($x2,$y2) = $rescale->($e->target,1,1);
+                my $bright = int(rand(255));
+                my $factor = $e->age || 1;
+                $factor  /= $e->maxage;
+                $factor *= $factor;
+                $app->draw_line(
+                    [$x,$y] , [$x2,$y2] , [  $bright,$bright,255, 250 -200*$factor ] , ANTIALIAS
+                );
+                
+            }
         }
-        
-        if ($e->isa('Droidbattles::Effect::Plasmaround')) {
-            my ($x,$y,$sx,$sy) = $rescale->($e->position,$e->size,$e->size);
-            $app->draw_circle_filled( [$x,$y, ] , $sx , [0,200,0,200] );
-        }
-        
-        if ($e->isa('Droidbattles::Effect::Rocket')) {
-            my ($x,$y,$sx,$sy) = $rescale->($e->position,$e->size,$e->size);
-            $app->draw_circle_filled( [$x,$y, ] , $sx , [255,255,255,200] );
-        }
-        if ($e->isa('Droidbattles::Effect::Missile')) {
-            my ($x,$y,$sx,$sy) = $rescale->($e->position,$e->size,$e->size);
-            $app->draw_circle_filled( [$x,$y, ] , $sx , [255,255,0,200] );
-        }
-        
-              
-        if ($e->isa('Droidbattles::Effect::RocketDebris')) {
-            my ($x,$y,$sx,$sy) = $rescale->($e->position,$e->size,$e->size);
-            my $factor = abs( $e->maxage - $e->age ) ;
-            next unless $factor;
-            $factor /= $e->maxage;
-            $app->draw_circle_filled( [$x,$y, ] , $sx , 
-                [55,55,55,  255 * $factor ] );
-        }
-        
-        if ($e->isa('Droidbattles::Effect::PlasmaDebris')) {
-            my ($x,$y,$sx,$sy) = $rescale->($e->position,$e->size,$e->size);
-            my $factor = abs( $e->maxage - $e->age ) ;
-            next unless $factor;
-            $factor /= $e->maxage;
-            $app->draw_circle_filled( [$x,$y, ] , $sx , 
-                [55,255,255,  128 * $factor ] );
-        }
-        
-        if ($e->isa('Droidbattles::Effect::Debris')) {
-            my ($x,$y,$sx,$sy) = $rescale->($e->position,$e->size,$e->size);
-            my $factor = abs( $e->maxage - $e->age ) ;
-            next unless $factor;
-            $factor /= $e->maxage;
-            $app->draw_circle_filled( [$x,$y, ] , $sx , 
-                [200,90,10,  128 * $factor ] );
-        }
-        
+
     }
     $app->update;
     #SDL::Video::flip($app);

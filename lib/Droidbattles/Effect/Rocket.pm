@@ -5,6 +5,7 @@ use parent qw( Droidbattles::Effect );
 
 
 use Droidbattles::Effect::RocketDebris;
+use Droidbattles::Effect::RocketTrail;
 
 use Class::XSAccessor
     replace => 1,
@@ -37,6 +38,15 @@ sub step {
     my ($self,$arena) = @_;
     
     my $travel = find_distance( $self->position , $self->origin );
+    
+    # Emit rocket trails
+    if ( $arena->ticks % 5 == 0 ) {
+        $arena->add_element(
+            new Droidbattles::Effect::RocketTrail
+                direction => $self->direction - 180 - 20 + rand(40),
+                position => [ @{ $self->position } ],
+        );
+    }
     
     # Wait until travelled desired range
     return unless $travel >= $self->distance;

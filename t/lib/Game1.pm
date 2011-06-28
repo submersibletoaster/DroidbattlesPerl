@@ -3,12 +3,16 @@ package t::lib::Game1;
 use strict;
 use warnings;
 use Droidbattles::Arena;
-use Droidbattles::Arena::Functions;
+use Droidbattles::Arena::Functions 'find_distance', 'find_direction';
+
 use Droidbattles::Effect::OutOfBounds;
 use Droidbattles::Effect::Newton2D;
 use Droidbattles::Effect::Plasmaround;
 use Droidbattles::Effect::Rocket;
 use Droidbattles::Effect::Missile;
+use Droidbattles::Effect::Beam;
+
+
 use Droidbattles::Droid;
 
 sub new {
@@ -44,7 +48,20 @@ sub new {
     $_->add_routine( sub{ steer(shift,0.2+rand(0.05) ) } ) for @rocketeers;
     $_->add_routine(sub{ triggerhappy(@_,15+rand(5) ) } ) for @rocketeers; 
       
-  $_->add_routine( sub{ missiles(@_,int(200+rand(50))) } ) for @rocketeers;
+    $_->add_routine( sub{ missiles(@_,int(100+rand(50))) } ) for @rocketeers;
+
+    my @beamers;
+    push @beamers , new Droidbattles::Droid
+                    position => [-60000 + rand(120000), -60000 + rand(120000)],
+                    direction => rand(360),
+                    velocity => rand(50) + 50 ,
+                    armor => 500,
+                    size => 3000
+                        for 1..5;
+    $_->add_routine( \&wander  ) for @beamers;
+    $_->add_routine( sub { beam(@_,30000) } ) for @beamers;
+     $_->add_routine( sub{ missiles(@_,int(200+rand(50))) } ) for @beamers;
+
       
    
     
@@ -57,6 +74,7 @@ sub new {
         $bounds,
 
         @rocketeers,
+        @beamers,
         @drones
     );
     return $arena;
@@ -71,7 +89,7 @@ sub triggerhappy {
                 origin => [ @{ $self->position } ],
                 direction => $self->direction,
                 owner => $self
-        ) if $arena->ticks % $beat == 0;
+        ) if $arena->ticks % int($beat) == 0;
 }
 
 sub steer { 
@@ -85,9 +103,29 @@ sub rockets {
         new Droidbattles::Effect::Rocket
             origin => [ @{ $self->position } ],
             direction => $self->direction,
-            distance => 60000,
+            distance => 60000+rand(25000),
             strength => 400,
-    ) if $arena->ticks % $beat == 0;
+    ) if $arena->ticks % int($beat) == 0;
+    
+}
+
+sub beam {
+    my ($self,$arena,$range) = @_;
+    foreach my $e ( $arena->get_actors ) {
+        next if $e eq $self;
+        my $d = find_distance( $e->position , $self->position );
+        my $dir = find_direction( $self->position , $e->position  );
+        if ($d < $range) {
+            $arena->add_element(
+                new Droidbattles::Effect::Beam
+                    position => [@{ $self->position } ],
+                    range => $d,
+                    direction => $dir,
+                    owner => $self,
+            );
+            last;
+        }
+    }
     
 }
 

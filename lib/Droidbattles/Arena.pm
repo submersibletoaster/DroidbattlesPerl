@@ -4,6 +4,7 @@ use warnings;
 use Class::XSAccessor
     constructor => 'new',
     accessors => [qw(
+        gameover
         size_x
         size_y
         ticks
@@ -40,13 +41,17 @@ Add any type of Droidbattles::Actor to the arena.
 sub add_element {
     my ($self,$e) = @_;
     
+    
     # Hook for this?
     
     my $class = ref $e;
     push @{ $self->{elements}{$class} }, $e;
     
+    if ($class->is_actor and !exists $self->{actors}{$class} ) {
+        $self->{actors}{$class} = $self->{elements}{$class};
+    }
     
-    
+    $e;
     
 }
 
@@ -71,8 +76,21 @@ sub destroy_element {
 
 sub get_actors {
     my $self = shift;
-    my @el = grep { $_->isa('Droidbattles::Actor') }
-        map { @$_  } values %{$self->{elements}};
+    
+    if ( exists $self->{c_actors} && 
+        $self->{c_actors}[0] == $self->ticks
+        )
+         {
+        my $cached = $self->{c_actors}[1];
+        return @$cached;
+    }
+    
+    my @el = 
+        map { @$_  } values %{$self->{actors}};
+    
+    $self->{c_actors}[0] = $self->ticks;
+    $self->{c_actors}[1] = \@el;
+    
     
     return @el;
     
@@ -95,7 +113,9 @@ step the simulation one tick.
 sub simulate {
     my $self=shift;
     $self->ticks(1) unless $self->ticks;
-    
+    $self->ticks(1) if $self->ticks > 65535;
+
+    # No simulation?
     # Loop over elements 
 
     foreach my $element( map { @$_  } values %{$self->{elements}} ) {
@@ -109,9 +129,14 @@ sub simulate {
                 grep  { $_->isa('Droidbattles::Droid') } 
                 map { @$_  } values %{$self->{elements}};
                 
-    die "Finished! winner is $droids[0]" if scalar @droids == 1;
     
-    $self->ticks(1) if $self->ticks > 65535;
+    if (scalar @droids == 1) {
+        $self->gameover( $self->gameover + 1);
+        die "The winner is $droids[0]" if $self->gameover > 500;
+    
+    }
+    
+    
     
     return;
 
