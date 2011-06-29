@@ -1,14 +1,16 @@
 package Droidbattles::Arena;
 use strict;
 use warnings;
+use Algorithm::QuadTree;
 use Class::XSAccessor
-    constructor => 'new',
     accessors => [qw(
         gameover
         size_x
         size_y
         ticks
         elements
+        objects
+        qt
     )];
 
 
@@ -38,11 +40,20 @@ Add any type of Droidbattles::Actor to the arena.
 
 =cut
 
+sub new {
+    my $class = shift;
+    my $self = bless { @_ } , $class;
+    $self->objects( [] ) unless $self->objects;
+    
+    $self->_fresh_quadtree;
+    return $self;
+    
+}
+
 sub add_element {
     my ($self,$e) = @_;
     
     
-    # Hook for this?
     
     my $class = ref $e;
     push @{ $self->{elements}{$class} }, $e;
@@ -50,6 +61,16 @@ sub add_element {
     if ($class->is_actor and !exists $self->{actors}{$class} ) {
         $self->{actors}{$class} = $self->{elements}{$class};
     }
+    
+
+    my $next_id = $#{ $self->objects } + 1;
+    $e->id($next_id);
+
+    push @{ $self->objects } , $e;
+    
+    $self->qt->add( $e->id , $e->collision_box ) if ($e->is_collidable);
+    
+    
     
     $e;
     
@@ -63,6 +84,8 @@ sub destroy_element {
     my $class =ref $e;
     @{ $self->{elements}{$class} } =
         grep { $_ ne $e } @{ $self->{elements}{$class} };
+    
+    undef ${ $self->objects }[$e->id];
         
     if ($e->can('hook_destroy')) {
         eval {
@@ -103,6 +126,13 @@ sub get_elements {
     
 }
 
+sub get_object_by_id {
+    my ($self,$id) = @_;
+    my $objects = $self->objects;
+    if ($id > $#{$objects} ) { return }
+    return $objects->[$id];
+}
+
 
 =head2 simulate
 
@@ -117,9 +147,14 @@ sub simulate {
 
     # No simulation?
     # Loop over elements 
-
+    my $qt = $self->_fresh_quadtree;
+    
+    $qt->add( $_->id , $_->collision_box ) for 
+                        grep { $_->is_collidable  }
+                        $self->get_elements;
+    
     foreach my $element( map { @$_  } values %{$self->{elements}} ) {
-        #warn "sim\t$element\n";
+
         $element->step($self);
         
     }
@@ -140,6 +175,21 @@ sub simulate {
     
     return;
 
+}
+
+sub _fresh_quadtree {
+    my $self = shift;
+    
+   my $qt = Algorithm::QuadTree->new(
+            -xmin => - $self->size_x,
+            -xmax => $self->size_x,
+            -ymin => -$self->size_y, 
+            -ymax => $self->size_y ,
+            -depth => 4,
+            
+    );
+    $self->qt( $qt );
+    
 }
 
 sub damage {

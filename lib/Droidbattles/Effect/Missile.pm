@@ -41,16 +41,17 @@ sub step {
         $arena->destroy_element($self,'out of range');
     } else {
     
-
-        foreach my $e ( $arena->get_actors ) {
-            # Politely safe to the weapon firer
-            next if ($self->owner eq $e );
+        my $nearby = $arena->qt->getEnclosedObjects(
+                $self->position->[0] - 20000,
+                $self->position->[1] - 20000,
+                $self->position->[0] + 20000,
+                $self->position->[1] + 20000,
+        );
         
-            if ( circles_overlap( $self->position, $self->size , $e->position, $e->size ) ) {
-                warn "Missile collision with $e";
-                $arena->damage( $e => $self->strength );
-                $arena->destroy_element($self);
-            }
+        foreach my $hit ( @$nearby ) {
+            my $e = $arena->get_object_by_id($hit) || next;
+            next unless $e->is_actor;
+            next if $self->owner eq $e;
             
             my $dist = find_distance($self->position,$e->position);
             if ($dist < 20000)  {
@@ -59,9 +60,24 @@ sub step {
                 $offset /= 10;
                 my $new = abs( $self->direction - $dir ) / 2;
                 $self->direction(   $dir );
+                last;
             }
         }
     }
+    
+}
+
+sub hook_collision {
+    my ($self,$arena,$e) = @_;
+    return if $self->owner eq $e;
+    
+    if ( circles_overlap( $self->position, $self->size , $e->position, $e->size ) ) {
+        warn "Missile collision with $e";
+        $arena->damage( $e => $self->strength );
+        $arena->destroy_element($self);
+    }
+    
+    
 }
 
 sub hook_destroy {

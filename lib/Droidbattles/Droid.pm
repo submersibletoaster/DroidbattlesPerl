@@ -39,8 +39,15 @@ sub step {
     if ($self->routines ) {
         $_->($self,$arena) for @{ $self->routines } ;
     }
+    
+    my $collides = $arena->qt->getEnclosedObjects($self->collision_box);
+    foreach my $hit ( @$collides ) {
+        next if $hit eq $self->id;
+        my $e = $arena->get_object_by_id($hit) || next;
+        $e->hook_collision( $arena, $self) 
+    }
+    
 }
-
 
 sub hook_destroy {
     my ($self,$arena) = @_;
@@ -52,6 +59,10 @@ sub hook_destroy {
                     size => $self->size * rand(1)+0.5 ,
             
             ) for  1..int($self->size/250);
+}
+
+sub hook_collision {
+    my ($self,$arena,$e) = @_;
     
 }
 

@@ -5,6 +5,7 @@ use parent qw( Droidbattles::Effect );
 
 use Class::XSAccessor
     replace => 1,
+    false => [ 'is_collidable' ],
     accessors => [qw( age maxage )];
 
 sub new {

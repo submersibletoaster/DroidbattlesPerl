@@ -5,12 +5,14 @@ use warnings;
 use Class::XSAccessor
     predicates => {
         has_position => 'position',
+        has_size => 'size',
         has_velocity => 'velocity' ,
         has_direction => 'direction',
         has_armor => 'armor',
     },
-    true => [qw(       
+    true => [qw(
         is_actor 
+        is_collidable
     )],
     false => [qw(is_effect)],
     
@@ -20,6 +22,7 @@ use Class::XSAccessor
         direction
         armor
         size
+        id
     )];
 
 sub defaults {
@@ -30,6 +33,19 @@ sub defaults {
     velocity => 10,
     size => 512,
     );
+}
+
+sub collision_box {
+    my $self = shift;
+    my $pos = $self->position;
+    my $size = $self->size;
+    return (
+        $pos->[0] - $size,
+        $pos->[1] - $size,
+        $pos->[0] + $size,
+        $pos->[1] + $size
+    )
+    
 }
 
 

@@ -50,7 +50,7 @@ sub step {
     
     # Wait until travelled desired range
     return unless $travel >= $self->distance;
-    
+
 
     # We have reached our distance - explode.
     foreach my $e ( $arena->get_actors ) {

@@ -11,21 +11,21 @@ use Class::XSAccessor
         x_upper
         y_lower
         y_upper
-    )];
+    )], 
+    false => ['is_collidable'],
+    predicates => {
+        has_position => 'position'
+        
+    };
     
 
 sub step {
     my $self = shift;
     my $arena = shift;
-
-    foreach my $e ( 
-                        $arena->get_elements
-                      ) 
-    {
-        
-        next if $e eq $self;
+    
+    foreach my $e ( $arena->get_elements ) {
+        next if $self eq $e;
         next unless $e->has_position;
-        
         # Push droids back in bounds
         if ( $e->isa( 'Droidbattles::Droid' ) ) {
             

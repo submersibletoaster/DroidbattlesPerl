@@ -4,6 +4,7 @@ use warnings;
 use parent qw( Droidbattles::Effect );
 
 use Class::XSAccessor 
+    false => ['is_collidable'],
     accessors => [qw( maxage age started )];
 
 sub defaults {

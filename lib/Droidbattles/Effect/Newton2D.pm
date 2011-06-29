@@ -7,6 +7,7 @@ use Droidbattles::Arena::Functions
     'translate_xy_dir_dist';
 
 use Class::XSAccessor
+    false => [ 'is_collidable' ],
     accessors => [qw(
         
     )];

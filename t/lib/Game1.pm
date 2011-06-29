@@ -17,9 +17,12 @@ use Droidbattles::Droid;
 
 sub new {
     my $class = shift;
-    my $arena = new Droidbattles::Arena @_;
+    my $arena = new Droidbattles::Arena 
+                        size_x=> 2** 16,
+                        size_y => 2 ** 16,
+                        @_;
     my $bounds = new Droidbattles::Effect::OutOfBounds 
-                                range => [ 2 ** 16 , 2 ** 16 ];
+                                range => [ $arena->size_x , $arena->size_y ];
                                 
     my $physics = new Droidbattles::Effect::Newton2D;
     
@@ -118,7 +121,7 @@ sub beam {
         if ($d < $range) {
             $arena->add_element(
                 new Droidbattles::Effect::Beam
-                    position => [@{ $self->position } ],
+                    origin => [@{ $self->position } ],
                     range => $d,
                     direction => $dir,
                     owner => $self,

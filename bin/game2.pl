@@ -26,7 +26,7 @@ my $game = SDLx::App->new(
      w => 800, h => 800,
     d => 32,
     title => 'Droidbattles',
-    dt=>1/50 , min_t => 3/50, delay=> 0
+    dt=>1/50 , min_t => 3/50, delay=> 0.02
 );
 
 
@@ -47,8 +47,8 @@ sub on_event {
 sub draw {
     my ($time,$app) = @_;
     
-    my $factor =  $app->w / ( 2 ** 16 * 2 );
-    my $offset  = 2 ** 16 ;
+    my $factor =  $app->w / ( $arena->size_x * 2 );
+    my $offset  = $arena->size_x;
     my $rescale = sub { 
         my $p = shift;
         my $c = [@$p];
@@ -149,8 +149,8 @@ sub draw {
                 )
                 
             } elsif ( $type eq 'Droidbattles::Effect::Beam' ) {
-                my ($x,$y,$sx,$sy) = $rescale->($e->position,$e->size,$e->size);
-                my ($x2,$y2) = $rescale->($e->target,1,1);
+                my ($x,$y,$sx,$sy) = $rescale->($e->position,1,1);
+                my ($x2,$y2) = $rescale->($e->origin,1,1);
                 my $bright = int(rand(255));
                 my $factor = $e->age || 1;
                 $factor  /= $e->maxage;

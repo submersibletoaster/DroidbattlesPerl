@@ -1,6 +1,7 @@
 package Droidbattles::Arena::Functions;
 use strict;
 use warnings;
+use Carp 'croak','confess';
 use parent 'Exporter';
 our @EXPORT_OK = qw( 
     find_distance
@@ -22,7 +23,8 @@ my @BOTRAD=( map { $_ / 1024 * pi * 2 } 0..BOTRAD_MOD );
 
 sub is_inside_box {
     my ($point,$Xsize,$Ysize) = @_;
-
+    confess "No position" unless defined $point->[X];
+    
     abs $point->[X] < $Xsize
     and
     abs $point->[Y] < $Ysize ;
