@@ -14,23 +14,31 @@ my $instructions_re =
 my $compiler_re =
         qr/org|CPUboot|CPUstack|interrupt/;
 
+my $device_re =
+        qr/RAM:|DEVICE:/;
+
 %}
 
 %%
 input:  #empty
-        |   input line  { push(@{$_[1]},$_[2]); $_[1] }
+        |   input line  { 
+                push(@{$_[1]},$_[2]); $_[1] 
+        }
 ;
 
 line:       ENDLINE                { $_[1] }
         |   exp ENDLINE            { $_[1] }
         |   exp COMMENT ENDLINE    { $_[1] }
+        |   COMMENT ENDLINE {}
         |   error ENDLINE { $_[0]->YYErrok }
 ;
 
 exp: LABEL { print "label @_\n" ; $_[1] ; } |
-     instruction arglist { print "instruction +arglist @_\n"  ; $_[1] } |
-     instruction { print "instruction no args @_\n"; $_[1] } |
-     compiler_instruction numericterm { print "compiler instruction, @_\n" ; $_[1]; }
+     instruction arglist { print "instruction +arglist @_\n"  ; shift ; [@_]; } |
+     instruction { print "instruction no args @_\n"; shift ; [@_ ]; } |
+     compiler_instruction { print "compiler instruction, @_\n" ; $_[1]; } |
+     device_instruction { print "device instruction @_\n" ; $_[1] ; } |
+     declaration { print "declaration @_\n" ; $_[1] }
 ;
 
 arglist: term { print "TERM\n"; $_[1] } |
@@ -41,13 +49,48 @@ instruction:
   INSTRUCT { print "INSTRUCT: @_\n" ; $_[1]; }
 ;
 
-numericterm: NUM | HEX;
+numericterm: NUM | HEX  { print "numericterm @_"; $_[1] } ;
+
+numerictermlist : 
+        numericterm
+      | numericterm numerictermlist
+      {
+              shift;
+              warn "numerictermlist @_";
+              [  (@_) ];
+      };
 
 term:   SYM | NUM | HEX | '@'SYM | '@'NUM ;
 
+declaration: 
+        VAR numericterm {
+                print "VAR numericterm @_\n";
+                shift;
+                return [@_];
+        
+        };
+
 compiler_instruction:
-  COMPINSTRUCT { print "COMPINSTR: @_\n"; $_[1]; }
-;
+  COMPINSTRUCT numericterm { 
+        print "COMPINSTR: @_\n";
+        push @{ $_[0]->YYData->{code} } , $_[1];
+        [ $_[1] , $_[2] ];
+};
+
+device_instruction:
+    DEVINSTRUCT numerictermlist 
+   { 
+        print "DEVINSTRUCT: @_\n";
+        my $p = shift;
+        if ($_[0] eq 'RAM:') {
+                $p->YYData->{ram} = $_[1];
+        } else {
+                
+                push @{ $p->YYData->{devicemap} } , $_[1]
+        }
+        
+        [ @_ ];
+   };
 
 
 
@@ -77,6 +120,8 @@ sub _Lexer {
                 and return('INSTRUCT',$1);
         s/^%($compiler_re)//
                 and return('COMPINSTRUCT',$1);
+        s/^($device_re)//
+                and return('DEVINSTRUCT',$1);
         s/^(0x[0-9A-Fa-f]+)//
                 and return('HEX',$1);
         s/^([0-9]+(?:\.[0-9]+)?)//
@@ -88,9 +133,9 @@ sub _Lexer {
         s/^:([A-Za-z][A-Za-z0-9_]*)//
                 and return('LABEL',$1);
 
-        s/^;([^\n]+)//
+        s/^\s*;([^\n]+)//
                 and return('COMMENT', $1);
-        s/^(\n)//
+        s/^\s*(\n)//
                 and return('ENDLINE',$1); 
         s/^(,|@)//
                 and return($1,$1);
@@ -100,5 +145,9 @@ sub _Lexer {
 
 sub Run {
     my($self)=shift;
-    $self->YYParse( yylex => \&_Lexer, yyerror => \&_Error , yydebug=>0x01 );
+    $self->YYParse( 
+        yylex => \&_Lexer, 
+        yyerror => \&_Error , 
+        yydebug=>0x0,
+    );
 }
