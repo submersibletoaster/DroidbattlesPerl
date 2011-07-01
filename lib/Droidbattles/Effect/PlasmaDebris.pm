@@ -10,8 +10,8 @@ use Class::XSAccessor
 sub defaults {
     shift->SUPER::defaults,
     velocity => 10,
-    size => 700,
-    maxage => 30,
+    size => 150,
+    maxage => 25,
     age => 0,
 }
 

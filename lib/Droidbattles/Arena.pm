@@ -36,6 +36,7 @@ Number of ticks the gamespace has been running
 
 =head2 add_element
 
+
 Add any type of Droidbattles::Actor to the arena.
 
 =cut

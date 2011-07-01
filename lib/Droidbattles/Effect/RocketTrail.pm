@@ -19,8 +19,8 @@ sub new {
 
 sub defaults {
     $_[0]->SUPER::defaults,
-    velocity => 300,
-    size => 250,
+    velocity => 100,
+    size => 150,
     strength => 100,
     range => 9000,
     age => 0,
