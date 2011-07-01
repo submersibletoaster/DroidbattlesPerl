@@ -16,6 +16,7 @@ my $builder = Module::Build->new(
         'Math::Trig' => 0,
         'Class::XSAccessor' => 0,
         'Carp' => 0,
+        'SDL' => '2.532',
         
     },
     add_to_cleanup      => [ 'Droidbattles-*' ],
