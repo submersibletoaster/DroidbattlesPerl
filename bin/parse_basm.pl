@@ -9,3 +9,4 @@ my $p = new Droidbattles::BASM::Parser;
 
 $p->Run;
 
+print Dumper $p->YYData if @ARGV;

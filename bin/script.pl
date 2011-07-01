@@ -11,7 +11,7 @@ use t::lib::Game1;
 my $arena = new t::lib::Game1;
 
 
-timethis( 10000, sub {eval{$arena->simulate}} );
+timethis( 10000, sub {$arena->simulate} );
 __END__
 
 my $dt = AnyEvent->timer( interval => 1, cb=>sub{print Dumper $arena->get_actors} );

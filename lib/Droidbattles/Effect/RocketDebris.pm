@@ -15,7 +15,7 @@ sub new {
 sub defaults {
     shift->SUPER::defaults,
     velocity => 10,
-    size => 9000,
+    size => 3000,
     maxage => 90,
     age => 0,
 }

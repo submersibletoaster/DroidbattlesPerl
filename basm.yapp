@@ -1,5 +1,6 @@
 %{
-
+use Data::Dumper;
+$Data::Dumper::Indent=1;
 my $instructions_re = 
         qr/mov|nop|movsb|movsw|stosb|stosw|lodsb|lodsw|push|pop|xchg|test|cmp|icmp|cmpsb|jmp|jz|jnz|jae|jbe|ja|jb|cj|cjn|lz|lnz|la|lb|lae|lbe|loop|call|ret|iret|cli|sti|out|in|inc|dec|add|sub|and|or|xor|shl|shr|ishl|ishr|ror|rol|int|mul|imul
                 |div|idiv
@@ -22,27 +23,30 @@ my $device_re =
 %%
 input:  #empty
         |   input line  { 
+                my $line = $_[0]->YYData->{lastline}++;
+                print "Got input line $line , @_";
+                push @{ $_[0]->YYData->{code} }, $_[1] if defined $_[1];
                 push(@{$_[1]},$_[2]); $_[1] 
         }
 ;
 
-line:       ENDLINE                { $_[1] }
+line:       ENDLINE                { return (); }
         |   exp ENDLINE            { $_[1] }
         |   exp COMMENT ENDLINE    { $_[1] }
-        |   COMMENT ENDLINE {}
+        |   COMMENT ENDLINE { return (); }
         |   error ENDLINE { $_[0]->YYErrok }
 ;
 
-exp: LABEL { print "label @_\n" ; $_[1] ; } |
-     instruction arglist { print "instruction +arglist @_\n"  ; shift ; [@_]; } |
-     instruction { print "instruction no args @_\n"; shift ; [@_ ]; } |
+exp: LABEL { print "label @_\n" ; ['Label',[ $_[1] ] ] ; } |
+     instruction arglist { print "instruction +arglist @_\n"  ; shift ; ['Instruction',[@_]] } |
+     instruction { print "instruction no args @_\n"; shift ; ['Instruction',[@_]]; } |
      compiler_instruction { print "compiler instruction, @_\n" ; $_[1]; } |
-     device_instruction { print "device instruction @_\n" ; $_[1] ; } |
+     device_instruction { print "device instruction @_\n" ; return ; } |
      declaration { print "declaration @_\n" ; $_[1] }
 ;
 
-arglist: term { print "TERM\n"; $_[1] } |
-         term ',' arglist { print "TERM ARGLIST @_\n";  [ $_[1], $_[2] ] }
+arglist: term { print "TERM\n";  [ $_[1] ] } |
+         term ',' arglist { print "TERM ARGLIST @_\n";  [ $_[1], $_[3] ] }
          ;
 
 instruction:
@@ -60,7 +64,7 @@ numerictermlist :
               [  (@_) ];
       };
 
-term:   SYM | NUM | HEX | '@'SYM | '@'NUM ;
+term:   MSYM | MNUM | SYM | NUM | HEX ;
 
 declaration: 
         VAR numericterm {
@@ -73,8 +77,7 @@ declaration:
 compiler_instruction:
   COMPINSTRUCT numericterm { 
         print "COMPINSTR: @_\n";
-        push @{ $_[0]->YYData->{code} } , $_[1];
-        [ $_[1] , $_[2] ];
+       [ $_[1] , $_[2] ];
 };
 
 device_instruction:
@@ -89,7 +92,7 @@ device_instruction:
                 push @{ $p->YYData->{devicemap} } , $_[1]
         }
         
-        [ @_ ];
+       ();
    };
 
 
@@ -103,7 +106,10 @@ sub _Error {
         delete $_[0]->YYData->{ERRMSG};
         return;
     };
-    print "Syntax error.\n";
+    my $lastline = $_[0]->YYData->{lastline};
+    my $ctok = $_[0]->YYCurtok;
+    print "Syntax error, '$ctok' around line $lastline \n";
+   
 }
 
 sub _Lexer {
@@ -126,8 +132,14 @@ sub _Lexer {
                 and return('HEX',$1);
         s/^([0-9]+(?:\.[0-9]+)?)//
                 and return('NUM',$1);
+        s/^(@[0-9]+(?:\.[0-9]+)?)//
+                and return('MNUM',$1);
+
         s/^([A-Za-z][A-Za-z0-9_]*)//
                 and return('SYM',$1);
+        s/^(@[A-Za-z][A-Za-z0-9_]*)//
+                and return('MSYM',$1);
+                
         s/^\$([A-Za-z][A-Za-z0-9_]*)//
                 and return('VAR',$1);
         s/^:([A-Za-z][A-Za-z0-9_]*)//
@@ -136,10 +148,9 @@ sub _Lexer {
         s/^\s*;([^\n]+)//
                 and return('COMMENT', $1);
         s/^\s*(\n)//
-                and return('ENDLINE',$1); 
-        s/^(,|@)//
+                and return('ENDLINE',$1);
+        s/^\s*(,)\s*//
                 and return($1,$1);
-        
     }
 }
 
