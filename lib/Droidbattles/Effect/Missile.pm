@@ -42,10 +42,10 @@ sub step {
     } else {
     
         my $nearby = $arena->qt->getEnclosedObjects(
-                $self->position->[0] - 20000,
-                $self->position->[1] - 20000,
-                $self->position->[0] + 20000,
-                $self->position->[1] + 20000,
+                $self->position->[0] - 5000,
+                $self->position->[1] - 5000,
+                $self->position->[0] + 5000,
+                $self->position->[1] + 5000,
         );
         
         foreach my $hit ( @$nearby ) {
@@ -54,7 +54,7 @@ sub step {
             next if $self->owner eq $e;
             
             my $dist = find_distance($self->position,$e->position);
-            if ($dist < 20000)  {
+            if ($dist < 5000)  {
                 my $dir = find_direction( $self->position , $e->position );
                 my $offset = $dir - $self->direction ;
                 $offset /= 10;
