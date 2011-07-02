@@ -44,8 +44,8 @@ sub hook_collision {
     my ($self,$arena,$e) = @_;
       return if $e eq $self->owner;
       if ( is_inside_circle( $self->position , $e->position , $e->size ) ) {
-          warn "Beam hit $e";
-        $arena->damage( $e => 15 );
+         # warn "Beam hit $e";
+        $arena->damage( $e => 1 );
       }
 
   

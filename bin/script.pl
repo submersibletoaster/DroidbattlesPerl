@@ -10,8 +10,14 @@ use t::lib::Game1;
 
 my $arena = new t::lib::Game1;
 
+my $run = sub {
+    eval { $arena->simulate }; 
+    $arena = new t::lib::Game1 if $@;
+    
+};
 
-timethis( 10000, sub {$arena->simulate} );
+
+timethis( 5000, $run );
 __END__
 
 my $dt = AnyEvent->timer( interval => 1, cb=>sub{print Dumper $arena->get_actors} );

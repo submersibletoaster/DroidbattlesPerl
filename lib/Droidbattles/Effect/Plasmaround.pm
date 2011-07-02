@@ -38,7 +38,7 @@ sub hook_collision {
     my ($self,$arena,$e) = @_;
     return if $self->owner eq $e;
     if ( circles_overlap( $self->position, $self->size , $e->position, $e->size ) ) {
-        warn "Plasma HIT $e";
+        #warn "Plasma HIT $e";
         $arena->destroy_element($self);
         $arena->damage( $e => 15 );
     }

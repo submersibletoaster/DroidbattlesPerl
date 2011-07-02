@@ -72,7 +72,7 @@ sub hook_collision {
     return if $self->owner eq $e;
     
     if ( circles_overlap( $self->position, $self->size , $e->position, $e->size ) ) {
-        warn "Missile collision with $e";
+        #warn "Missile collision with $e";
         $arena->damage( $e => $self->strength );
         $arena->destroy_element($self);
     }
