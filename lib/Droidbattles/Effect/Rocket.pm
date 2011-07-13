@@ -43,7 +43,7 @@ sub step {
     if ( $arena->ticks % 5 == 0 ) {
         $arena->add_element(
             new Droidbattles::Effect::RocketTrail
-                direction => $self->direction - 180 - 20 + rand(40),
+                direction => $self->direction - 512 - 64 + rand(128),
                 position => [ @{ $self->position } ],
         );
     }

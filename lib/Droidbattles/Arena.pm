@@ -1,7 +1,7 @@
 package Droidbattles::Arena;
 use strict;
 use warnings;
-use Algorithm::QuadTree;
+use Droidbattles::Arena::QuadTree;
 use Class::XSAccessor
     accessors => [qw(
         gameover
@@ -157,7 +157,10 @@ sub simulate {
     foreach my $element( map { @$_  } values %{$self->{elements}} ) {
 
         $element->step($self);
-        
+        $element->age( $element->age+1);
+        if ($element->maxage) {
+            $self->destroy_element($element) if $element->age > $element->maxage;
+        }
     }
     
     $self->ticks( $self->ticks + 1 );
@@ -181,7 +184,7 @@ sub simulate {
 sub _fresh_quadtree {
     my $self = shift;
     
-   my $qt = Algorithm::QuadTree->new(
+   my $qt = Droidbattles::Arena::QuadTree->new(
             -xmin => - $self->size_x,
             -xmax => $self->size_x,
             -ymin => -$self->size_y, 
@@ -198,6 +201,7 @@ sub damage {
     if ($e->armor) { 
         $e->armor( $e->armor - $d );
         $self->destroy_element( $e ) if $e->armor <= 0;
+        eval { $e->hook_damage( $self, $d ) } if $e->can('hook_damage');
     }
     
 }

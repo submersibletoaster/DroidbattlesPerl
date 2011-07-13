@@ -49,11 +49,11 @@ sub hook_destroy {
     $arena->add_element(
                 new Droidbattles::Effect::PlasmaDebris
                     position => [ @{ $self->position } ],
-                    direction => rand(360),
+                    direction => rand(1024),
                     velocity => $self->velocity ,
                     size => $self->size,
             
-            ) for  1..3;
+            ) for  1..5;
     
 }
 

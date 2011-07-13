@@ -4,6 +4,8 @@ use warnings;
 use Carp 'croak','confess';
 use parent 'Exporter';
 our @EXPORT_OK = qw( 
+bot2rad
+rad2bot
     find_distance
     find_direction
     is_inside_box 
@@ -20,7 +22,18 @@ use constant BOTRAD_MOD => 1024 ;
 my @BOTRAD=( map { $_ / 1024 * pi * 2 } 0..BOTRAD_MOD );
 
 sub bot2rad ($) { 
-    $BOTRAD[int($_[0])] || croak "$_[0] is out of range"; 
+    my $i = $_[0] % 1024;
+    $BOTRAD[int($i)] // croak "$_[0] , $i is out of range"; 
+}
+
+sub rad2bot ($) {
+    my $r = $_[0];
+    $r /= 2;
+    $r /= pi;
+    #warn "$_[0] => $r";
+    $r *= 1024;
+    $r += 256; # WTF ?
+    $r = $r % 1024;
 }
 
 
@@ -52,41 +65,41 @@ sub find_direction {
     my $offset;
     if ( $dx == 0 and $dy == 0 ) {
         # co-incident default to north
-        return 0;
+        return 768;
     } elsif ( $dx == 0 and $dy < 0 ) {
-        return 180;
+        return 256;
     } elsif ( $dx == 0 and $dy > 0 ) {
-        return 0;
+        return 768;
     }
     elsif ( $dy == 0 and $dx < 0 ) {
-        return 270;
+        return 512;
     } elsif ( $dy == 0 and $dx > 0 ) {
-        return 90;
+        return 0;
     }
   
     if ($dx > 0) {
         if ( $dy > 0 ) {
             $rad = atan($dx/$dy);
-            $offset = 0;
+            $offset = 768;
         } else {
             $rad =  atan(-$dy/$dx);
-            $offset = 90;
+            $offset = 0;
         }
             
     } else {
         if ( $dy < 0 ) {
                 $rad = atan(-$dx/-$dy);
-                $offset = 180;
+                $offset = 256;
         } else {
                 $rad = atan($dy/-$dx);
-                $offset = 270;
+                $offset = 512;
         }
             
     }
     
-    my $dir = rad2deg($rad);
-    return $dir + $offset;
-    
+    my $dir = rad2bot($rad);
+    $dir += $offset;
+    return $dir % 1024;
 }
 
 sub circles_overlap {
@@ -126,8 +139,8 @@ sub translate_xy_dir_dist {
         my ($x,$y,$dir,$dist) = @_;
         my ($dx,$dy) = 
             (
-                sin(deg2rad $dir) * $dist, 
-                cos(deg2rad $dir) * $dist,
+                sin(bot2rad $dir) * $dist, 
+                cos(bot2rad $dir) * $dist,
             );
             #warn sprintf "Adjust %.2f => %.2f ", $x, $y;
         $x+= $dx;

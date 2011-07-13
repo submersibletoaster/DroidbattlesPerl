@@ -18,8 +18,8 @@ use Droidbattles::Droid;
 sub new {
     my $class = shift;
     my $arena = new Droidbattles::Arena 
-                        size_x=> 2** 15,
-                        size_y => 2 ** 15,
+                        size_x=> 30000,
+                        size_y => 30000,
                         @_;
     my $bounds = new Droidbattles::Effect::OutOfBounds 
                                 range => [ $arena->size_x , $arena->size_y ];
@@ -33,7 +33,7 @@ sub new {
     my @drones;
     push @drones, new Droidbattles::Droid
                     position => $rand_position->() ,
-                    direction => rand(360),
+                    direction => rand(1024),
                     velocity => rand(50) + 50 ,
                     armor => 40,
                     size => 500
@@ -44,14 +44,14 @@ sub new {
     my @rocketeers;
     push @rocketeers , new Droidbattles::Droid
                     position => $rand_position->() ,
-                    direction => rand(360),
+                    direction => rand(1024),
                     velocity => rand(50) + 50 ,
                     armor => 500,
-                    size => 1000
+                    size => 1500
                         for 1..5;
                   
     $_->add_routine( sub{ rockets(@_,100+rand(10)) } ) for @rocketeers;
-    $_->add_routine( sub{ steer(shift,0.2+rand(0.05) ) } ) for @rocketeers;
+    $_->add_routine( sub{ steer(shift,0.5+rand(0.05) ) } ) for @rocketeers;
     $_->add_routine(sub{ triggerhappy(@_,15+rand(5) ) } ) for @rocketeers; 
       
     $_->add_routine( sub{ missiles(@_,int(100+rand(50))) } ) for @rocketeers;
@@ -59,12 +59,12 @@ sub new {
     my @beamers;
     push @beamers , new Droidbattles::Droid
                     position => $rand_position->(),
-                    direction => rand(360),
+                    direction => rand(1024),
                     velocity => rand(50) + 50 ,
                     armor => 500,
-                    size => 1000
+                    size => 1500
                         for 1..5;
-    $_->add_routine( \&wander  ) for @beamers;
+    $_->add_routine( sub { steer(shift,-0.5-rand(0.1)) }  ) for @beamers;
     $_->add_routine( sub { beam(@_,15000) } ) for @beamers;
      $_->add_routine( sub{ missiles(@_,int(200+rand(50))) } ) for @beamers;
 
@@ -100,6 +100,7 @@ sub triggerhappy {
 
 sub steer { 
         my $self = shift;
+        
         $self->direction( $self->direction + shift );
 }
 
@@ -121,7 +122,7 @@ sub beam {
         next if $e eq $self;
         my $d = find_distance( $e->position , $self->position );
         my $dir = find_direction( $self->position , $e->position  );
-        if ($d < $range) {
+        if ($d < $range && $arena->ticks % 10 == 0) {
             $arena->add_element(
                 new Droidbattles::Effect::Beam
                     origin => [@{ $self->position } ],
@@ -140,7 +141,7 @@ sub missiles {
         $arena->add_element(
         new Droidbattles::Effect::Missile
             origin => [ @{ $self->position } ],
-            direction => $self->direction + 90,
+            direction => $self->direction + 256,
             owner => $self
     ) if $arena->ticks % $beat == 0;
     
@@ -149,7 +150,7 @@ sub missiles {
 sub wander {
     my ($self,$arena) = @_;
     if ( int(rand(200) + rand(200)) == 200 ) {
-        $self->direction(rand(360));
+        $self->direction(rand(1024));
     }
     
 }

@@ -19,6 +19,8 @@ use Class::XSAccessor
         range
         owner
         size
+        age
+        maxage
         id
     )];
  
@@ -26,6 +28,8 @@ sub defaults {
     direction => 0 ,
     velocity => 10,
     range => 10,
+    age=>0,
+    maxage=>0,
     size => 10
 
 }

@@ -22,6 +22,8 @@ use Class::XSAccessor
         direction
         armor
         size
+        age
+        maxage
         id
     )];
 
@@ -32,6 +34,9 @@ sub defaults {
     direction => 0,
     velocity => 10,
     size => 512,
+    age => 0,
+    maxage=>0
+    
     );
 }
 

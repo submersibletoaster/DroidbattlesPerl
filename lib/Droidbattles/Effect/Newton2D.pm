@@ -25,12 +25,6 @@ sub step {
         # adjust velocity by acceleration ?
         my $dir = $e->direction;
         
-        # # adjust position by direction/velocity
-        # my ($x,$y) = 
-            # (
-                # sin(deg2rad $dir) * $e->velocity, 
-                # cos(deg2rad $dir) * $e->velocity,
-            # );
         my $pos = translate_xy_dir_dist @{ $e->position } ,  $e->direction, $e->velocity ;
         
         $e->position($pos);

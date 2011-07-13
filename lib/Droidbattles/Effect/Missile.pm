@@ -56,10 +56,12 @@ sub step {
             my $dist = find_distance($self->position,$e->position);
             if ($dist < 5000)  {
                 my $dir = find_direction( $self->position , $e->position );
-                my $offset = $dir - $self->direction ;
+                my $offset =  $self->direction - $dir;
                 $offset /= 10;
-                my $new = abs( $self->direction - $dir ) / 2;
-                $self->direction(   $dir );
+                my $new = ( $offset < 0 ) ? $self->direction - $offset
+                                          : $self->direction + $offset;
+                $new = $new % 1024;
+                $self->direction(   $new );
                 last;
             }
         }
